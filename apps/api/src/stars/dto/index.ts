@@ -34,8 +34,8 @@ export class GenerateStarDto {
 }
 
 export class ListStarsQuery {
-  page?: number = 1;
-  pageSize?: number = 20;
+  page?: number;
+  pageSize?: number;
   category?: string;
   gender?: 'male' | 'female' | 'other';
   search?: string;

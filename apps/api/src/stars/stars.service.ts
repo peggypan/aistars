@@ -10,7 +10,6 @@ export class StarsService {
     const { page = 1, pageSize = 20, category, gender, search } = query;
     
     const where: any = {};
-    if (category) where.categories = { has: category };
     if (gender) where.gender = gender;
     if (search) {
       where.OR = [
@@ -25,7 +24,6 @@ export class StarsService {
         skip: (page - 1) * pageSize,
         take: pageSize,
         orderBy: { createdAt: 'desc' },
-        include: { categories: true },
       }),
       this.prisma.star.count({ where }),
     ]);
@@ -39,7 +37,6 @@ export class StarsService {
   async findOne(id: string) {
     const star = await this.prisma.star.findUnique({
       where: { id },
-      include: { categories: true, movies: { include: { movie: true } } },
     });
     if (!star) throw new NotFoundException('演员不存在');
     return star;
@@ -49,9 +46,11 @@ export class StarsService {
     return this.prisma.star.create({
       data: {
         ...dto,
+        personality: dto.personality ? JSON.stringify(dto.personality) : null,
+        skills: dto.skills ? JSON.stringify(dto.skills) : null,
+        categories: dto.categoryIds ? JSON.stringify(dto.categoryIds) : null,
         aiGenerated: false,
       },
-      include: { categories: true },
     });
   }
 
@@ -64,8 +63,12 @@ export class StarsService {
     await this.findOne(id);
     return this.prisma.star.update({
       where: { id },
-      data: dto,
-      include: { categories: true },
+      data: {
+        ...dto,
+        personality: dto.personality ? JSON.stringify(dto.personality) : undefined,
+        skills: dto.skills ? JSON.stringify(dto.skills) : undefined,
+        categories: dto.categoryIds ? JSON.stringify(dto.categoryIds) : undefined,
+      },
     });
   }
 
@@ -77,17 +80,20 @@ export class StarsService {
 
   async exportForFilmStudio(id: string) {
     const star = await this.findOne(id);
+    const personality = star.personality ? JSON.parse(star.personality) : [];
+    const skills = star.skills ? JSON.parse(star.skills) : [];
+    
     return {
       id: star.id,
       name: star.name,
       avatar: star.avatar,
       type: 'actor',
       bio: `${star.age}岁${star.nationality}演员。${star.background?.slice(0, 100)}...`,
-      skills: star.skills,
+      skills,
       aiStarId: star.id,
       aiGenerated: star.aiGenerated,
       metadata: {
-        personality: star.personality,
+        personality,
         appearance: star.appearance,
         age: star.age,
         gender: star.gender,

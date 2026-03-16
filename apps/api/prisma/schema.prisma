@@ -1,262 +1,88 @@
-// Prisma Schema for AI Stars
-// 数据库模型定义
+// Prisma Schema for AI Stars - SQLite Compatible
+// 简化版 MVP Schema
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-// 明星模型
+// 演员模型 - MVP简化版
 model Star {
   id          String   @id @default(uuid())
   name        String   // 艺名
-  realName    String?  // 本名
   avatar      String?  // 头像URL
-  age         Int      // 年龄
-  gender      Gender   // 性别
-  nationality String   // 国籍
   
-  // 人物设定
-  personality String[] // 性格标签
-  background  String?  @db.Text // 背景故事
-  skills      String[] // 特长技能
+  // 基础信息
+  age         Int
+  gender      String   // male/female/other (SQLite不支持enum)
+  nationality String
   
-  // 形象风格
-  appearance  String?  @db.Text // 外貌描述
+  // 人物设定 (JSON存储数组)
+  personality String?  // JSON: ["冷静", "理性"]
+  background  String?  // 背景故事
+  skills      String?  // JSON: ["编程", "格斗"]
+  
+  // 形象
+  appearance  String?  // 外貌描述
   style       String?  // 穿搭风格
   signature   String?  // 标志性特征
   
-  // 职业信息
-  categories  Category[] @relation("StarCategories")
-  debutYear   Int?     // 出道年份
-  agency      String?  // 经纪公司
+  // 分类 (逗号分隔的ID列表)
+  categories  String?  // JSON: ["cat1", "cat2"]
   
-  // 作品关联
-  movies      StarMovie[]
-  
-  // 统计数据
-  fanCount    Int      @default(0)    // 粉丝数
-  popularity  Float    @default(0)    // 人气指数 0-100
-  viewCount   Int      @default(0)    // 浏览量
+  // 作品 (JSON存储)
+  movies      String?  // JSON: [{"id": "m1", "title": "xxx", "roleName": "主角"}]
   
   // AI生成信息
   aiGenerated Boolean  @default(true)
-  aiPrompt    String?  @db.Text // 生成提示词
-  aiModel     String?  // 使用的AI模型
-  seed        Int?     // 随机种子
+  aiPrompt    String?  // 生成提示词
   
-  // 状态
-  status      StarStatus @default(active)
-  
-  // 榜单记录
-  rankings    RankingEntry[]
-  
+  // 统计
+  viewCount   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
-  @@index([status])
-  @@index([popularity])
-  @@index([aiGenerated])
+
   @@map("t_stars")
-}
-
-// 性别枚举
-enum Gender {
-  male
-  female
-  other
-}
-
-// 明星状态
-enum StarStatus {
-  active     // 活跃
-  inactive   // 不活跃
-  archived   // 归档
 }
 
 // 分类模型
 model Category {
-  id          String    @id @default(uuid())
-  name        String    // 分类名称
-  type        CategoryType // 大分类类型
-  icon        String?   // 图标
-  description String?   // 描述
-  color       String?   // 主题色
-  
-  // 层级结构
-  parentId    String?
-  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children    Category[] @relation("CategoryHierarchy")
-  
-  // 关联明星
-  stars       Star[]    @relation("StarCategories")
-  starCount   Int       @default(0)
-  
-  sortOrder   Int       @default(0)
-  isActive    Boolean   @default(true)
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  @@index([type])
-  @@index([isActive])
-  @@map("t_categories")
-}
+  id          String   @id @default(uuid())
+  name        String   // 分类名称
+  type        String   // actor/singer/host/model/other
+  icon        String?
+  description String?
+  starCount   Int      @default(0)
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-// 分类类型
-enum CategoryType {
-  actor      // 演员
-  singer     // 歌手
-  host       // 主持人
-  model      // 模特
-  influencer // 网红
-  other      // 其他
+  @@map("t_categories")
 }
 
 // 作品模型
 model Movie {
-  id           String     @id @default(uuid())
-  title        String     // 作品名称
-  type         MovieType  // 作品类型
-  poster       String?    // 海报URL
-  backdrop     String?    // 背景图
+  id          String   @id @default(uuid())
+  title       String
+  type        String   // movie/tv/variety/music/ad/short
+  poster      String?
+  releaseYear Int
+  genre       String?  // JSON: ["科幻", "动作"]
+  description String?
+  duration    Int?
+  rating      Float?
   
-  // 基本信息
-  releaseYear  Int        // 发行年份
-  genre        String[]   // 类型标签
-  description  String?    @db.Text // 简介
-  duration     Int?       // 时长(分钟)
+  // 参演演员 (JSON存储)
+  stars       String?  // JSON: [{"starId": "s1", "roleName": "主角"}]
   
-  // 评分
-  rating       Float?     // 评分 0-10
-  ratingCount  Int        @default(0)
-  
-  // 参演明星
-  stars        StarMovie[]
-  
-  // AI生成
-  aiGenerated  Boolean    @default(true)
-  aiPrompt     String?    @db.Text
-  
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  
-  @@index([type])
-  @@index([releaseYear])
+  aiGenerated Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   @@map("t_movies")
-}
-
-// 作品类型
-enum MovieType {
-  movie      // 电影
-  tv         // 电视剧
-  variety    // 综艺
-  music      // 音乐/MV
-  ad         // 广告
-  short      // 短片
-}
-
-// 明星-作品关联表
-model StarMovie {
-  id        String   @id @default(uuid())
-  starId    String
-  movieId   String
-  
-  // 角色信息
-  roleName  String   // 角色名
-  roleType  RoleType // 戏份类型
-  isLead    Boolean  @default(false) // 是否主演
-  
-  // 表演评价
-  performanceRating Float? // 表演评分
-  review    String?  @db.Text // 评价
-  
-  star      Star     @relation(fields: [starId], references: [id], onDelete: Cascade)
-  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  
-  createdAt DateTime @default(now())
-  
-  @@unique([starId, movieId])
-  @@index([starId])
-  @@index([movieId])
-  @@map("t_star_movies")
-}
-
-// 戏份类型
-enum RoleType {
-  lead       // 主角
-  supporting // 配角
-  cameo      // 客串
-  guest      // 嘉宾
-}
-
-// 榜单模型
-model Ranking {
-  id          String        @id @default(uuid())
-  name        String        // 榜单名称
-  type        RankingType   // 榜单类型
-  description String?       // 描述
-  icon        String?       // 图标
-  color       String?       // 主题色
-  
-  // 更新周期
-  updateCycle UpdateCycle   @default(daily)
-  lastUpdated DateTime      @default(now())
-  
-  // 榜单条目
-  entries     RankingEntry[]
-  
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  
-  @@index([type])
-  @@index([isActive])
-  @@map("t_rankings")
-}
-
-// 榜单类型
-enum RankingType {
-  popularity  // 人气榜
-  works       // 作品榜
-  trending    // 热度榜
-  newStars    // 新人榜
-  rating      // 评分榜
-  fans        // 粉丝榜
-}
-
-// 更新周期
-enum UpdateCycle {
-  hourly     // 每小时
-  daily      // 每日
-  weekly     // 每周
-  monthly    // 每月
-}
-
-// 榜单条目
-model RankingEntry {
-  id        String   @id @default(uuid())
-  rankingId String
-  starId    String
-  
-  rank      Int      // 排名
-  score     Float    // 得分
-  change    Int      @default(0) // 排名变化 (+上升, -下降)
-  
-  // 统计快照
-  fanCount  Int?     // 粉丝数快照
-  viewCount Int?     // 浏览量快照
-  
-  ranking   Ranking  @relation(fields: [rankingId], references: [id], onDelete: Cascade)
-  star      Star     @relation(fields: [starId], references: [id], onDelete: Cascade)
-  
-  createdAt DateTime @default(now())
-  
-  @@unique([rankingId, starId])
-  @@index([rankingId, rank])
-  @@map("t_ranking_entries")
 }
