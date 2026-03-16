@@ -1,0 +1,14 @@
+import { Layout } from 'antd'
+
+function App() {
+  return (
+    <Layout style={{ minHeight: '100vh' }}>
+      <Layout.Content style={{ padding: 24 }}>
+        <h1>AI Stars</h1>
+        <p>AI影视演员库 - 项目初始化完成</p>
+      </Layout.Content>
+    </Layout>
+  )
+}
+
+export default App
