@@ -28,8 +28,12 @@ model Star {
   
   // 形象
   appearance  String?  // 外貌描述
-  style       String?  // 穿搭风格
+  style       String?  // 穿搭风格（自由输入）
+  stylePreset String?  // 风格预选：elegant/street/vintage/casual/business/sporty
   signature   String?  // 标志性特征
+  
+  // 性格预选
+  personalityPreset String? // 性格预选：calm/energetic/rational/emotional/confident/shy/humorous/serious
   
   // 分类 (逗号分隔的ID列表)
   categories  String?  // JSON: ["cat1", "cat2"]

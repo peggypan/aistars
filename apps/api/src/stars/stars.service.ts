@@ -58,9 +58,47 @@ export class StarsService {
     });
   }
 
+  // 风格和性格预设的中文映射
+  private stylePresetMap: Record<string, string> = {
+    elegant: '优雅',
+    street: '街头',
+    vintage: '复古',
+    casual: '休闲',
+    business: '商务',
+    sporty: '运动',
+    bohemian: '波西米亚',
+    minimalist: '极简',
+  };
+
+  private personalityPresetMap: Record<string, string> = {
+    calm: '冷静',
+    energetic: '活泼',
+    rational: '理性',
+    emotional: '感性',
+    confident: '自信',
+    shy: '害羞',
+    humorous: '幽默',
+    serious: '严肃',
+    optimistic: '乐观',
+    pessimistic: '悲观',
+  };
+
   async generate(dto: GenerateStarDto) {
+    // 构建AI提示词，包含预设的风格和性格
+    let enhancedPrompt = dto.prompt || '';
+    
+    if (dto.stylePreset) {
+      const styleName = this.stylePresetMap[dto.stylePreset] || dto.stylePreset;
+      enhancedPrompt += `\n风格：${styleName}风格`;
+    }
+    
+    if (dto.personalityPreset) {
+      const personalityName = this.personalityPresetMap[dto.personalityPreset] || dto.personalityPreset;
+      enhancedPrompt += `\n性格：${personalityName}`;
+    }
+
     // 调用AI服务生成演员档案
-    const aiProfile = await this.aiService.generateStarProfile(dto.prompt);
+    const aiProfile = await this.aiService.generateStarProfile(enhancedPrompt);
     
     // 构建演员数据
     const starData = {
@@ -68,15 +106,17 @@ export class StarsService {
       age: aiProfile.age || this.randomAge(dto.ageRange),
       gender: aiProfile.gender || dto.gender || 'other',
       nationality: aiProfile.nationality || '中国',
-      personality: JSON.stringify(aiProfile.personality || ['开朗', '友善']),
+      personality: JSON.stringify(aiProfile.personality || [this.personalityPresetMap[dto.personalityPreset] || '开朗']),
+      personalityPreset: dto.personalityPreset || null,
       background: aiProfile.background || '暂无背景故事',
       skills: JSON.stringify(aiProfile.skills || ['表演']),
       appearance: aiProfile.appearance || '外貌出众',
-      style: aiProfile.style || '时尚',
+      style: aiProfile.style || (dto.stylePreset ? this.stylePresetMap[dto.stylePreset] : '时尚'),
+      stylePreset: dto.stylePreset || null,
       signature: aiProfile.signature || '',
       categories: dto.categoryIds ? JSON.stringify(dto.categoryIds) : null,
       aiGenerated: true,
-      aiPrompt: dto.prompt,
+      aiPrompt: enhancedPrompt,
     };
 
     // 创建演员记录

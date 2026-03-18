@@ -72,6 +72,12 @@ export const categoryApi = {
 }
 
 // 类型定义
+// 风格预设类型
+export type StylePreset = 'elegant' | 'street' | 'vintage' | 'casual' | 'business' | 'sporty' | 'bohemian' | 'minimalist'
+
+// 性格预设类型
+export type PersonalityPreset = 'calm' | 'energetic' | 'rational' | 'emotional' | 'confident' | 'shy' | 'humorous' | 'serious' | 'optimistic' | 'pessimistic'
+
 export interface Star {
   id: string
   name: string
@@ -79,10 +85,12 @@ export interface Star {
   gender: 'male' | 'female' | 'other'
   nationality: string
   personality: string[]
+  personalityPreset?: PersonalityPreset
   background: string
   skills: string[]
   appearance: string
   style: string
+  stylePreset?: StylePreset
   signature?: string
   avatar?: string
   categories?: Category[]
@@ -115,18 +123,22 @@ export interface CreateStarData {
   gender: 'male' | 'female' | 'other'
   nationality?: string
   personality?: string[]
+  personalityPreset?: PersonalityPreset
   background?: string
   skills?: string[]
   appearance?: string
   style?: string
+  stylePreset?: StylePreset
   categoryIds?: string[]
 }
 
 export interface UpdateStarData extends Partial<CreateStarData> {}
 
 export interface GenerateStarData {
-  prompt: string
+  prompt?: string
   gender?: 'male' | 'female' | 'other'
   ageRange?: [number, number]
   categoryIds?: string[]
+  stylePreset?: StylePreset
+  personalityPreset?: PersonalityPreset
 }
