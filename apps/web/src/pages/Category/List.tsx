@@ -1,4 +1,4 @@
-import { Table, Button, Space } from 'antd'
+import { Table, Button } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 
 function CategoryList() {

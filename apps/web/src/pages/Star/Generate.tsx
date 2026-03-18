@@ -1,4 +1,4 @@
-import { Card, Form, Input, Button, Select, InputNumber, Space } from 'antd'
+import { Card, Form, Input, Button, Select, Space } from 'antd'
 import { BulbOutlined } from '@ant-design/icons'
 
 const { TextArea } = Input

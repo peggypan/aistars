@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AiService } from '../ai/ai.service';
 import { CreateStarDto, UpdateStarDto, GenerateStarDto, ListStarsQuery } from './dto';
 
 @Injectable()
 export class StarsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private aiService: AiService,
+  ) {}
 
   async findAll(query: ListStarsQuery) {
     const { page = 1, pageSize = 20, category, gender, search } = query;
@@ -55,8 +59,47 @@ export class StarsService {
   }
 
   async generate(dto: GenerateStarDto) {
-    // TODO: 调用OpenAI生成演员档案
-    throw new Error('AI生成功能待实现');
+    // 调用AI服务生成演员档案
+    const aiProfile = await this.aiService.generateStarProfile(dto.prompt);
+    
+    // 构建演员数据
+    const starData = {
+      name: aiProfile.name || this.generateRandomName(),
+      age: aiProfile.age || this.randomAge(dto.ageRange),
+      gender: aiProfile.gender || dto.gender || 'other',
+      nationality: aiProfile.nationality || '中国',
+      personality: JSON.stringify(aiProfile.personality || ['开朗', '友善']),
+      background: aiProfile.background || '暂无背景故事',
+      skills: JSON.stringify(aiProfile.skills || ['表演']),
+      appearance: aiProfile.appearance || '外貌出众',
+      style: aiProfile.style || '时尚',
+      signature: aiProfile.signature || '',
+      categories: dto.categoryIds ? JSON.stringify(dto.categoryIds) : null,
+      aiGenerated: true,
+      aiPrompt: dto.prompt,
+    };
+
+    // 创建演员记录
+    const star = await this.prisma.star.create({ data: starData });
+
+    return {
+      success: true,
+      message: 'AI演员生成成功',
+      data: star,
+    };
+  }
+
+  private generateRandomName(): string {
+    const surnames = ['李', '王', '张', '刘', '陈', '杨', '赵', '黄', '周', '吴'];
+    const names = ['子轩', '梓涵', '雨桐', '浩然', '诗琪', '俊杰', '思颖', '博文', '雅婷', '睿渊'];
+    return surnames[Math.floor(Math.random() * surnames.length)] + 
+           names[Math.floor(Math.random() * names.length)];
+  }
+
+  private randomAge(range?: [number, number]): number {
+    const min = range?.[0] || 18;
+    const max = range?.[1] || 50;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
   async update(id: string, dto: UpdateStarDto) {

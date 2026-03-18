@@ -1,0 +1,32 @@
+.star-list-page {
+  padding-bottom: 40px;
+}
+
+.star-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.star-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.star-card .ant-card-actions {
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+
+.star-card .ant-card-actions > li {
+  margin: 8px 0;
+}
+
+.star-card .ant-card-actions > li:not(:last-child) {
+  border-right: 1px solid #f0f0f0;
+}
+
+.star-card .ant-avatar {
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}

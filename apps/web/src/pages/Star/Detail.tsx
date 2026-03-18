@@ -1,4 +1,4 @@
-import { Card, Descriptions, Tag } from 'antd'
+import { Card, Descriptions } from 'antd'
 import { useParams } from 'react-router-dom'
 
 function StarDetail() {
