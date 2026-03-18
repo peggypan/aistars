@@ -304,7 +304,7 @@ function StarList() {
               loading={categoriesLoading}
               suffixIcon={<FilterOutlined />}
             >
-              {categories.map((cat: Category) => (
+              {categories?.map((cat: Category) => (
                 <Option key={cat.id} value={cat.id}>
                   {categoryIcons[cat.type] || '⭐'} {cat.name}
                 </Option>
@@ -401,3 +401,4 @@ function StarList() {
 }
 
 export default StarList
+

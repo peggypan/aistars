@@ -3,15 +3,23 @@ import OpenAI from 'openai';
 
 @Injectable()
 export class AiService {
-  private openai: OpenAI;
+  private openai: OpenAI | null;
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (apiKey) {
+      this.openai = new OpenAI({ apiKey });
+    } else {
+      console.warn('⚠️  OPENAI_API_KEY not set - AI generation features will be disabled');
+      this.openai = null;
+    }
   }
 
   async generateStarProfile(prompt: string) {
+    if (!this.openai) {
+      throw new Error('AI generation is not available - OPENAI_API_KEY not configured');
+    }
+
     // TODO: 实现AI生成演员档案
     const systemPrompt = `你是一个专业的演员档案生成专家。
 根据用户的需求，生成一个完整的虚拟演员档案。
